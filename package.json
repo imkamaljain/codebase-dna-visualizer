@@ -1,0 +1,23 @@
+{
+  "name": "codebase-dna-visualizer",
+  "author": {
+    "name": "Kamal Jain"
+  },
+  "version": "1.0.0",
+  "description": "Codebase DNA Visualizer - Analyze repositories using entropy analysis and duplication detection",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "start": "npm run start --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
