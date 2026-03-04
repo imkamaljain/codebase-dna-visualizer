@@ -4,6 +4,7 @@ A powerful tool that analyzes your codebase and generates a 3D DNA helix visuali
 
 ## Features
 
+- **GitHub URL Analysis**: Clone and analyze any public GitHub repository with a single click
 - **3D DNA Helix Visualization**: Interactive Three.js visualization of your codebase structure
 - **Entropy Analysis**: Shannon entropy calculation to detect code randomness and complexity
 - **Duplication Detection**: Sliding window hashing to identify repeated code patterns
@@ -11,32 +12,12 @@ A powerful tool that analyzes your codebase and generates a 3D DNA helix visuali
 - **Health Score**: Quantitative maintainability metrics (0-100)
 - **Refactor Suggestions**: Intelligent recommendations based on analysis results
 
-## Architecture
-
-```
-codebase-dna/
-├── backend/          # Node.js Express API
-│   └── src/
-│       ├── analyzer.js      # Main analysis orchestrator
-│       ├── entropy.js       # Shannon entropy calculation
-│       ├── complexity.js    # Cyclomatic complexity
-│       ├── duplication.js   # Code duplication detection
-│       └── dna-mapping.js   # File type → nucleotide mapping
-└── frontend/         # React + Three.js
-    └── src/
-        ├── components/
-        │   ├── DNAHelix.jsx         # 3D visualization
-        │   ├── HealthDashboard.jsx  # Metrics overview
-        │   ├── FileDetails.jsx      # File inspector
-        │   └── SuggestionsPanel.jsx # Refactor recommendations
-        └── App.jsx
-```
-
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
+- Git (for GitHub URL analysis)
 - npm or yarn
 
 ### Installation
@@ -65,8 +46,67 @@ npm run dev:frontend  # Frontend on http://localhost:3000
 
 1. Start the development servers
 2. Open http://localhost:3000
-3. Enter a local directory path to analyze (e.g., `C:\path\to\project`)
-4. View the 3D DNA visualization and health metrics
+3. **Option A**: Enter a GitHub URL (e.g., `https://github.com/user/repo`)
+4. **Option B**: Enter a local directory path (e.g., `C:\path\to\project`)
+5. View the 3D DNA visualization and health metrics
+
+## Architecture
+
+```
+codebase-dna/
+├── backend/          # Node.js Express API
+│   ├── index.js            # Express server + GitHub API endpoint
+│   └── src/
+│       ├── analyzer.js      # Main analysis orchestrator + git clone
+│       ├── entropy.js       # Shannon entropy calculation
+│       ├── complexity.js    # Cyclomatic complexity
+│       ├── duplication.js   # Code duplication detection
+│       └── dna-mapping.js   # File type → nucleotide mapping
+└── frontend/         # React + Three.js
+    └── src/
+        ├── components/
+        │   ├── DNAHelix.jsx         # 3D visualization
+        │   ├── HealthDashboard.jsx  # Metrics overview
+        │   ├── FileDetails.jsx      # File inspector
+        │   └── SuggestionsPanel.jsx # Refactor recommendations
+        └── App.jsx
+```
+
+## API Endpoints
+
+### `POST /api/analyze-github`
+Analyze a GitHub repository by URL.
+
+```json
+{
+  "url": "https://github.com/user/repo"
+}
+```
+
+### `POST /api/analyze-directory`
+Analyze a local directory.
+
+```json
+{
+  "directory": "/path/to/project"
+}
+```
+
+Response:
+```json
+{
+  "repo": "project-name",
+  "analyzedFiles": 42,
+  "dnaSequence": [...],
+  "metrics": {
+    "avgEntropy": 4.2,
+    "avgComplexity": 8.5,
+    "avgDuplication": 12.3
+  },
+  "healthScore": 78,
+  "suggestions": [...]
+}
+```
 
 ## DNA Mapping
 
@@ -106,30 +146,7 @@ Calculated as: `100 - (entropy_penalty + complexity_penalty + duplication_penalt
 
 ## API Endpoints
 
-### `POST /api/analyze-directory`
-Analyze a local directory.
-
-```json
-{
-  "directory": "/path/to/project"
-}
-```
-
-Response:
-```json
-{
-  "repo": "project-name",
-  "analyzedFiles": 42,
-  "dnaSequence": [...],
-  "metrics": {
-    "avgEntropy": 4.2,
-    "avgComplexity": 8.5,
-    "avgDuplication": 12.3
-  },
-  "healthScore": 78,
-  "suggestions": [...]
-}
-```
+See the API Endpoints section above for details.
 
 ## Tech Stack
 
@@ -141,13 +158,14 @@ Response:
 
 **Backend:**
 - Node.js + Express
-- Multer (file uploads)
+- simple-git (GitHub cloning)
 
 ## Limitations
 
 - Maximum 500 files per analysis
-- ZIP upload not yet implemented (use directory analysis)
 - Binary files are ignored
+- GitHub URL analysis requires git installed
+- Private repositories not supported (yet)
 
 ## License
 
