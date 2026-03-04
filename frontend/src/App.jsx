@@ -5,6 +5,7 @@ import DNAHelix from './components/DNAHelix';
 import HealthDashboard from './components/HealthDashboard';
 import FileDetails from './components/FileDetails';
 import SuggestionsPanel from './components/SuggestionsPanel';
+import HotspotPanel from './components/HotspotPanel';
 
 const API_URL = 'http://localhost:3001';
 
@@ -15,6 +16,10 @@ function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [directoryPath, setDirectoryPath] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
+
+  const handleClearSelection = () => {
+    setSelectedFile(null);
+  };
 
   const handleDirectoryAnalyze = async () => {
     if (!directoryPath.trim()) {
@@ -227,18 +232,23 @@ function App() {
                 {/* 3D DNA Helix */}
                 <div className="lg:col-span-2">
                   <div className="glass rounded-2xl p-4 h-[600px]">
-                    <DNAHelix 
-                      dnaSequence={analysis.dnaSequence} 
+                    <DNAHelix
+                      dnaSequence={analysis.dnaSequence}
                       onFileSelect={setSelectedFile}
+                      onHotspotSelect={setSelectedFile}
                     />
                   </div>
                 </div>
 
                 {/* File Details Panel */}
                 <div className="space-y-6">
-                  <FileDetails 
-                    file={selectedFile} 
-                    onClose={() => setSelectedFile(null)}
+                  <FileDetails
+                    file={selectedFile}
+                    onClose={handleClearSelection}
+                  />
+                  <HotspotPanel
+                    file={selectedFile}
+                    onClose={handleClearSelection}
                   />
                   <SuggestionsPanel suggestions={analysis.suggestions} />
                 </div>
@@ -260,7 +270,7 @@ function App() {
                       className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <span 
+                        <span
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: getNucleotideColor(file.nucleotide) }}
                         />

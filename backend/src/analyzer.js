@@ -5,6 +5,7 @@ import { calculateEntropy } from './entropy.js';
 import { calculateComplexity } from './complexity.js';
 import { detectDuplication } from './duplication.js';
 import { getNucleotide, getRefactorSuggestions } from './dna-mapping.js';
+import { detectHotspots, calculateHotspotScore } from './hotspots.js';
 
 const MAX_FILES = 500;
 const IGNORE_PATTERNS = [
@@ -71,12 +72,13 @@ export async function analyzeCodebase(zipPath = null, directoryPath = null) {
       if (!TEXT_EXTENSIONS.includes(extension) && extension !== '') {
         continue;
       }
-      
+
       const entropy = calculateEntropy(content);
       const complexity = calculateComplexity(content);
       const duplication = detectDuplication(content);
       const nucleotide = getNucleotide(extension);
-      
+      const hotspots = detectHotspots(content, file.relativePath);
+
       const fileInfo = {
         file: file.relativePath,
         nucleotide,
@@ -84,9 +86,11 @@ export async function analyzeCodebase(zipPath = null, directoryPath = null) {
         complexity,
         duplication: Math.round(duplication * 100) / 100,
         size: content.length,
-        lines: content.split('\n').length
+        lines: content.split('\n').length,
+        hotspotScore: calculateHotspotScore(hotspots),
+        hotspots: hotspots.slice(0, 10) // Limit to top 10 hotspots per file
       };
-      
+
       dnaSequence.push(fileInfo);
       
       totalEntropy += entropy;
@@ -110,19 +114,30 @@ export async function analyzeCodebase(zipPath = null, directoryPath = null) {
   const complexityPenalty = Math.min(30, avgComplexity * 1.5);
   // Duplication penalty (normal < 15%, penalize > 15%)
   const duplicationPenalty = Math.min(30, avgDuplication * 1.2);
-  
+
   const healthScore = Math.max(0, Math.min(100, Math.round(
     100 - entropyPenalty - complexityPenalty - duplicationPenalty
   )));
 
+  // Calculate hotspot summary
+  const totalHotspots = dnaSequence.reduce((sum, f) => sum + (f.hotspots?.length || 0), 0);
+  const highSeverityHotspots = dnaSequence.reduce((sum, f) => 
+    sum + (f.hotspots?.filter(h => h.severity === 'high').length || 0), 0);
+
   // Generate suggestions for problematic files
   const suggestions = dnaSequence
-    .filter(f => f.entropy > 4.5 || f.duplication > 20 || f.complexity > 15)
+    .filter(f => f.entropy > 4.5 || f.duplication > 20 || f.complexity > 15 || f.hotspotScore > 30)
     .map(f => ({
       file: f.file,
       suggestions: getRefactorSuggestions(f)
     }))
     .filter(s => s.suggestions.length > 0);
+
+  // Get top hotspot files
+  const hotspotFiles = dnaSequence
+    .filter(f => f.hotspotScore > 0)
+    .sort((a, b) => b.hotspotScore - a.hotspotScore)
+    .slice(0, 5);
 
   return {
     repo: path.basename(directoryPath || 'unknown'),
@@ -132,10 +147,16 @@ export async function analyzeCodebase(zipPath = null, directoryPath = null) {
     metrics: {
       avgEntropy: Math.round(avgEntropy * 100) / 100,
       avgComplexity: Math.round(avgComplexity * 100) / 100,
-      avgDuplication: Math.round(avgDuplication * 100) / 100
+      avgDuplication: Math.round(avgDuplication * 100) / 100,
+      avgHotspotScore: Math.round(dnaSequence.reduce((sum, f) => sum + (f.hotspotScore || 0), 0) / count)
     },
     healthScore,
-    suggestions
+    suggestions,
+    hotspots: {
+      total: totalHotspots,
+      highSeverity: highSeverityHotspots,
+      topFiles: hotspotFiles
+    }
   };
 }
 

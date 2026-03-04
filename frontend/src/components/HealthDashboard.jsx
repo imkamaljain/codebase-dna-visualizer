@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 
 function HealthDashboard({ analysis }) {
-  const { healthScore, metrics } = analysis;
+  const { healthScore, metrics, hotspots } = analysis;
 
   const getHealthColor = (score) => {
     if (score >= 80) return '#00ff88';
@@ -31,7 +31,7 @@ function HealthDashboard({ analysis }) {
           </p>
         </div>
         <div className="text-right">
-          <div 
+          <div
             className="text-4xl font-bold"
             style={{ color: getHealthColor(healthScore) }}
           >
@@ -57,6 +57,30 @@ function HealthDashboard({ analysis }) {
           />
         </div>
       </div>
+
+      {/* Hotspot Summary */}
+      {hotspots && (
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">🔥</span>
+            <span className="text-white text-sm font-semibold">Hotspots Detected</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div>
+              <div className="text-red-400 font-bold">{hotspots.highSeverity}</div>
+              <div className="text-slate-500 text-xs">High</div>
+            </div>
+            <div>
+              <div className="text-orange-400 font-bold">{hotspots.total - hotspots.highSeverity}</div>
+              <div className="text-slate-500 text-xs">Medium/Low</div>
+            </div>
+            <div>
+              <div className="text-white font-bold">{hotspots.topFiles?.length || 0}</div>
+              <div className="text-slate-500 text-xs">Files</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-3 gap-4">

@@ -2,8 +2,9 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment } from '@react-three/drei';
 import { useMemo, useState } from 'react';
 import * as THREE from 'three';
+import HeatmapOverlay from './HeatmapOverlay';
 
-function DNAHelix({ dnaSequence, onFileSelect }) {
+function DNAHelix({ dnaSequence, onFileSelect, timelineKey = 0, onHotspotSelect }) {
   const [hoveredFile, setHoveredFile] = useState(null);
 
   const nucleotides = useMemo(() => {
@@ -58,6 +59,12 @@ function DNAHelix({ dnaSequence, onFileSelect }) {
           ))}
         </group>
 
+        {/* Heatmap overlay for hotspots */}
+        <HeatmapOverlay 
+          dnaSequence={dnaSequence} 
+          onHotspotClick={onHotspotSelect}
+        />
+
         {/* Connection lines (backbone) */}
         <Backbone nucleotides={nucleotides} />
       </Canvas>
@@ -77,24 +84,42 @@ function DNAHelix({ dnaSequence, onFileSelect }) {
 
       {/* Legend */}
       <div className="absolute bottom-4 left-4 glass rounded-lg p-3">
-        <div className="text-white text-xs font-semibold mb-2">Nucleotides</div>
+        <div className="text-white text-xs font-semibold mb-2">File Types</div>
         <div className="space-y-1 text-xs">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-[#00ff88]"></span>
-            <span className="text-slate-400">JS/JSX</span>
+            <span className="text-slate-400">JS/JSX/HTML/MD</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-[#ff6b6b]"></span>
-            <span className="text-slate-400">TS/TSX/CSS</span>
+            <span className="text-slate-400">TS/TSX/CSS/SQL</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-[#4dabf7]"></span>
-            <span className="text-slate-400">Go/C/C++</span>
+            <span className="text-slate-400">Go/C/C++/JSON</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-[#ffd43b]"></span>
-            <span className="text-slate-400">Python/YAML</span>
+            <span className="text-slate-400">Python/YAML/XML</span>
           </div>
+        </div>
+        <div className="mt-3 pt-3 border-t border-white/10">
+          <div className="text-white text-xs font-semibold mb-1">🔥 Hotspots</div>
+          <div className="space-y-1 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-red-500/60 border border-red-500"></span>
+              <span className="text-slate-400">High severity</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-orange-500/60 border border-orange-500"></span>
+              <span className="text-slate-400">Medium severity</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-yellow-500/60 border border-yellow-500"></span>
+              <span className="text-slate-400">Low severity</span>
+            </div>
+          </div>
+          <div className="text-slate-500 text-xs mt-2">Click any node to view details</div>
         </div>
       </div>
     </div>
@@ -104,8 +129,12 @@ function DNAHelix({ dnaSequence, onFileSelect }) {
 function NucleotidePair({ data, onHover, onClick }) {
   const [hovered, setHovered] = useState(false);
 
-  const color = hovered ? '#ffffff' : data.entropyColor;
+  // Use nucleotide color for the spheres
+  const color = hovered ? '#ffffff' : data.color;
   const scale = hovered ? 1.3 : 1;
+  
+  // Entropy affects emissive intensity (glow)
+  const entropyIntensity = Math.min(1, data.entropy / 5);
 
   return (
     <group>
@@ -126,7 +155,7 @@ function NucleotidePair({ data, onHover, onClick }) {
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.5}
+          emissiveIntensity={0.3 + entropyIntensity * 0.5}
           metalness={0.3}
           roughness={0.4}
         />
@@ -149,7 +178,7 @@ function NucleotidePair({ data, onHover, onClick }) {
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.5}
+          emissiveIntensity={0.3 + entropyIntensity * 0.5}
           metalness={0.3}
           roughness={0.4}
         />

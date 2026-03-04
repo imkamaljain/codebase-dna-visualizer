@@ -5,8 +5,11 @@ function FileDetails({ file, onClose }) {
     return (
       <div className="glass rounded-2xl p-6 h-64 flex items-center justify-center">
         <div className="text-center text-slate-500">
-          <div className="text-4xl mb-2">🔬</div>
-          <div className="text-sm">Click on a nucleotide to view file details</div>
+          <div className="text-4xl mb-2">🧬</div>
+          <div className="text-sm font-semibold text-white">Select a File</div>
+          <div className="text-xs mt-2 max-w-xs mx-auto">
+            Click on any node in the DNA helix to view file details and metrics
+          </div>
         </div>
       </div>
     );
